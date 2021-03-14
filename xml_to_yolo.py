@@ -3,11 +3,11 @@ import os
 import xml.etree.ElementTree as ET
 import pandas as pd
 import PIL
-
+from os.path import join, abspath
 from PIL import Image
 from sklearn.model_selection import train_test_split
 
-
+# must check the existing of obj folder first
 def xml_to_yolo(path):
     #Etiquetas en el mismo orden que el archivo .names
     clases = ["with_mask", "without_mask", "mask_weared_incorrect"]
@@ -17,12 +17,12 @@ def xml_to_yolo(path):
         root = tree.getroot()
         imageName = root.find('filename').text
         try:
-            with open("../images/"+imageName) as f:
-                image = Image.open("../images/"+imageName)
+            with open("images/"+imageName) as f:
+                image = Image.open("images/"+imageName)
                 imageWidth, imageHeight = image.size
                 f.close()
                 cuadro = ""
-                text_file = open(imageName.split('.')[0]+".txt", "w")
+                text_file = open("obj/"+imageName.split('.')[0]+".txt", "w")
                 for object in root.findall('object'):
                     name = object.find('name').text
                     classIndex = clases.index(name)
@@ -42,11 +42,15 @@ def xml_to_yolo(path):
 
                     #class x y width height
                     cuadro = cuadro + str(classIndex) + " " + str(round(xCenter,6)) + " " + str(round(yCenter,6)) + " " + str(round(width_yolo,6)) + " " + str(round(height_yolo,6)) + "\n"
-                    value = (name, imageName)
+                    #change png to jpg
+                    imageName_new = ""
+                    imageName_new = imageName.split(".")[0]+ ".jpg"
+                    value = (name, imageName_new)
                     bounding_boxes.append(value)
                 text_file.write(cuadro)
                 text_file.close()
-        except IOError:
+        except Exception as ex:
+            print(ex)
             print("File not accessible xml")
     column_name = ["ClassName","FileName"]
     yolo_df = pd.DataFrame(bounding_boxes, columns=column_name)
@@ -70,7 +74,9 @@ def generateTrainValidTxt(df, trainMode):
 
 
 def main():
-    pandasDF = xml_to_yolo(os.path.abspath(os.getcwd()))
+    pandasDF = xml_to_yolo(join(abspath(os.getcwd()), "annotations"))
+    print(pandasDF)
+    pandasDF.to_csv("test.csv")
     y = pandasDF['ClassName']
     train_set, test_set = train_test_split(pandasDF, test_size=0.1,random_state=25, stratify=y)
     generateTrainValidTxt(train_set, True)

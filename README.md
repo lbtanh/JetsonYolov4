@@ -43,16 +43,24 @@ Yolo needs an specific notation for train the model and .jpg file format, so fir
 ```
 $> sudo apt-get install imagemagick
 
-$> mogrify -format jpg *.png
+$> #mogrify -format jpg *.png
+# create new folder for output images
+$> mkdir ../obj & mogrify -format jpg -path ../obj *.png
 ```
-Now with the images on jpg format next step is to parse .xml to yolo format and create train/test .txt files. Just drop the xml_to_yolo.py python script inside annotations folder and run it with:
 
 ```
 $> python3 xml_to_yolo.py
 ```
 If you haven't any library just install it with pip/pip3.
 
-After that you will have one .txt per .xml file, train.txt and test.txt (These file has a split 90/10 of the total of bounding boxes).
+After that you will have one .txt per .xml file, train.txt and test.txt, obj folder contain the same format as darknet, now just copy it into darknet/data/ (These file has a split 90/10 of the total of bounding boxes).
+```
+cp -r obj ../darknet/data/ 
+cp train.txt ../darknet/data/ 
+cp test.txt ../darknet/data/ 
+cp obj.names ../darknet/data/
+cp obj.data ../darknet/data/  
+```
 
 ## YoloV4
 All the YoloV4 code is develop by [AlexeyAB/darknet](https://github.com/AlexeyAB/darknet), there you can find great documentation and examples about how to train, metrics, etc.
